@@ -1,10 +1,14 @@
 [
   {
-    "slug": "solmiwiki",
+    "slug": "solmi",
     "url": "https://www.solmi.wiki/"
   },
   {
     "slug": "okdalto",
     "url": "https://okdalto.github.io/"
+  },
+  {
+    "slug": "hanyongpa",
+    "url": "https://hanyongpa.love"
   }
 ]
