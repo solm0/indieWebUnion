@@ -349,8 +349,9 @@ function buildMesh(width, height) {
     meshPackets.push({
       linkIndex: index % meshLinks.length,
       progress: (index * 0.17) % 1,
-      speed: 0.0018 + (index % 5) * 0.00045,
+      speed: (0.0018 + (index % 5) * 0.00045) * 2,
       direction: index % 2 === 0 ? 1 : -1,
+      pauseUntil: 0,
     });
   }
 }
@@ -409,10 +410,11 @@ function animateMesh() {
 
   const width = meshCanvas.clientWidth;
   const height = meshCanvas.clientHeight;
+  const now = performance.now();
 
   meshContext.clearRect(0, 0, width, height);
   meshContext.lineWidth = 1;
-  meshContext.strokeStyle = "rgba(140, 140, 140, 0.3)";
+  meshContext.strokeStyle = "rgba(59, 59, 59, 0)";
   meshContext.setLineDash([5, 7]);
 
   meshLinks.forEach((link) => {
@@ -428,9 +430,12 @@ function animateMesh() {
 
   meshNodes.forEach((node) => {
     meshContext.beginPath();
-    meshContext.fillStyle = "rgba(150, 150, 150, 0.65)";
+    meshContext.fillStyle = "rgba(0, 0, 255, 0)";
+    meshContext.strokeStyle = "rgba(59, 59, 59, 0)";
+    meshContext.lineWidth = 0.5;
     meshContext.arc(node.x, node.y, node.radius ?? 2.2, 0, Math.PI * 2);
     meshContext.fill();
+    meshContext.stroke();
   });
 
   meshPackets.forEach((packet) => {
@@ -438,22 +443,25 @@ function animateMesh() {
     const fromNode = meshNodes[link.fromIndex];
     const toNode = meshNodes[link.toIndex];
 
-    packet.progress += packet.speed * packet.direction;
-    if (packet.progress >= 1 || packet.progress <= 0) {
-      packet.direction *= -1;
-      packet.progress = clamp(packet.progress, 0, 1);
+    if (now >= packet.pauseUntil) {
+      packet.progress += packet.speed * packet.direction;
+      if (packet.progress >= 1 || packet.progress <= 0) {
+        packet.direction *= -1;
+        packet.progress = clamp(packet.progress, 0, 1);
+        packet.pauseUntil = now + 1000;
+      }
     }
 
     const x = fromNode.x + (toNode.x - fromNode.x) * packet.progress;
     const y = fromNode.y + (toNode.y - fromNode.y) * packet.progress;
 
     meshContext.beginPath();
-    meshContext.fillStyle = "rgba(255, 255, 255, 0.95)";
+    meshContext.fillStyle = "rgba(189, 182, 168, 0.8)";
     meshContext.arc(x, y, 2.6, 0, Math.PI * 2);
     meshContext.fill();
 
     meshContext.beginPath();
-    meshContext.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    meshContext.strokeStyle = "rgba(189, 182, 168, 0.8)";
     meshContext.lineWidth = 2;
     meshContext.setLineDash([2, 10]);
     const trailStartNode = packet.direction >= 0 ? fromNode : toNode;
